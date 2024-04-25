@@ -1,0 +1,62 @@
+[
+    {
+        "title": "Harry potter and the philosopher's stone",
+        "ISBN": "9781408855652",
+        "genre": "Fantasy"
+    },
+    {
+        "title": "Harry potter and the half blood prince",
+        "ISBN": "9781408855706",
+        "genre": "Science Fiction"
+    },
+    {
+        "title": "Harry potter and the deathly hallows",
+        "ISBN": "9781408855713",
+        "genre": "Science Fiction"
+    },
+    {
+        "title": "Harry potter and the prisoner of azkaban",
+        "ISBN": "9781408855676",
+        "genre": "Other"
+    },
+    {
+        "title": "Harry potter and the goblet of fire",
+        "ISBN": "9781408855683",
+        "genre": "Science Fiction"
+    },
+    {
+        "title": "Harry potter and the order of the phoenix",
+        "ISBN": "9781408855690",
+        "genre": "Science"
+    },
+    {
+        "title": "The alchemist",
+        "ISBN": "9780062315007",
+        "genre": "Fiction"
+    },
+    {
+        "title": "The little prince",
+        "ISBN": "9780156012195",
+        "genre": "Children"
+    },
+    {
+        "title": "The great gatsby",
+        "ISBN": "9780743273565",
+        "genre": "Other"
+    },
+    {
+        "title": "To kill a mockingbird",
+        "ISBN": "9780061120084",
+        "genre": "Science Fiction"
+    },
+    {
+        "title": "1984",
+        "ISBN": "9780451524935",
+        "genre": "Biography"
+    },
+    {
+        "title": "Pride and prejudice",
+        "ISBN": "9780141439518",
+        "genre": "Fantasy"
+    }
+]
