@@ -1,33 +1,38 @@
 from flask import Blueprint, jsonify, request
-from .book_routes import ratings
+from flask_pymongo import PyMongo
 
 rating_bp = Blueprint('rating_bp', __name__)
+mongo = PyMongo()
 
 @rating_bp.route('/', methods=['GET'])
 def get_ratings():
     book_id = request.args.get('id', default=None)
     if book_id:
-        rating = ratings.get(book_id, None)
-        if rating is not None:
+        rating = mongo.db.ratings.find_one({'_id': book_id})
+        if rating:
+            rating['_id'] = str(rating['_id'])
             return jsonify([rating]), 200 
         else:
             return jsonify({'error': 'Rating not found for the given ID'}), 404
     else:
-        all_ratings = list(ratings.values())
+        all_ratings = list(mongo.db.ratings.find())
+        for rating in all_ratings:
+            rating['_id'] = str(rating['_id'])
         return jsonify(all_ratings), 200
-
 
 @rating_bp.route('/<string:id>', methods=['GET'])
 def get_rating(id):
-    rating = ratings.get(id, None)
-    if rating is not None:
+    rating = mongo.db.ratings.find_one({'_id': id})
+    if rating:
+        rating['_id'] = str(rating['_id'])
         return jsonify(rating), 200
     else:
         return jsonify({'error': 'Rating not found'}), 404
 
 @rating_bp.route('/<string:id>/values', methods=['POST'])
 def add_rating(id):
-    if id not in ratings:
+    rating = mongo.db.ratings.find_one({'_id': id})
+    if not rating:
         return jsonify({'error': 'Rating not found'}), 404
 
     data = request.get_json()
@@ -38,7 +43,13 @@ def add_rating(id):
     except (KeyError, TypeError):
         return jsonify({'error': 'Invalid data provided'}), 400
 
-    ratings[id]['values'].append(new_value)
-    ratings[id]['average'] = round(sum(ratings[id]['values']) / len(ratings[id]['values']), 2)
-    
-    return jsonify({'new_average': ratings[id]['average']}), 200
+    ratings_values = rating['values']
+    ratings_values.append(new_value)
+    new_average = round(sum(ratings_values) / len(ratings_values), 2)
+
+    mongo.db.ratings.update_one(
+        {'_id': id},
+        {'$set': {'values': ratings_values, 'average': new_average}}
+    )
+
+    return jsonify({'new_average': new_average}), 200

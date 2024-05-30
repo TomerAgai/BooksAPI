@@ -1,5 +1,4 @@
 import requests
-import google.generativeai as genai
 from flask import jsonify
 
 # """""""""""""""""""""""""""" #
@@ -35,31 +34,43 @@ def fetch_from_google_books(isbn):
             return jsonify({"error": "no items returned from Google Book API for given ISBN number"}), 400
     return None, None, None
 
-def fetch_language_from_openlibrary(isbn):
-    base_url = "https://openlibrary.org/search.json"
-    query = f"?q=isbn:{isbn}&fields=key,title,author_name,language"
-    response = requests.get(base_url + query)
-    if response.status_code == 200:
-        data = response.json()
-        languages = [lang for doc in data['docs'] for lang in doc.get('language', [])]
-        if not languages: 
-            languages.append('missing')
-        return languages
-    return ['missing']
+# def fetch_language_from_openlibrary(isbn):
+#     base_url = "https://openlibrary.org/search.json"
+#     query = f"?q=isbn:{isbn}&fields=key,title,author_name,language"
+#     response = requests.get(base_url + query)
+#     if response.status_code == 200:
+#         data = response.json()
+#         languages = [lang for doc in data['docs'] for lang in doc.get('language', [])]
+#         if not languages: 
+#             languages.append('missing')
+#         return languages
+#     return ['missing']
 
-def generate_summary(book_title, author_name):
-    try:
-        genai.configure(api_key=API_KEY)
-        model = genai.GenerativeModel('gemini-pro')
-        prompt = f"Summarize the book \"{book_title}\" by {author_name} in 5 sentences or less."
-        response = model.generate_content(prompt)
-        return response.text.strip()
+# def generate_summary(book_title, author_name):
+#     try:
+#         genai.configure(api_key=API_KEY)
+#         model = genai.GenerativeModel('gemini-pro')
+#         prompt = f"Summarize the book \"{book_title}\" by {author_name} in 5 sentences or less."
+#         response = model.generate_content(prompt)
+#         return response.text.strip()
 
-    except Exception as e:
-        print(f"An error occurred while generating the summary: {e}")
-        return "Summary not available."
+#     except Exception as e:
+#         print(f"An error occurred while generating the summary: {e}")
+#         return "Summary not available."
     
 def generate_book_id():
     global book_id_counter
     book_id_counter += 1
     return str(book_id_counter)
+
+def get_book_details(isbn):
+    try:
+        response = requests.get(f'http://books:8000/books', params={'ISBN': isbn})
+        response.raise_for_status()
+        books = response.json()
+        if books:
+            return books[0]
+        else:
+            raise ValueError("Book not found")
+    except requests.exceptions.RequestException as e:
+        raise ValueError(f"Error fetching book details: {str(e)}")
