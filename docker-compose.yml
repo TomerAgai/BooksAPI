@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   books:
-    build: .
+    build:
+      context: ./books_service
+      dockerfile: Dockerfile
     container_name: books
     ports:
       - "5001:8000"
@@ -11,39 +13,40 @@ services:
       - MONGO_URI=mongodb://mongodb:27017/BooksDB
     depends_on:
       - mongo
-    command: [ "flask", "run", "--host=0.0.0.0", "--port=8000" ]
 
   loans:
-    build: .
+    build:
+      context: ./loans_service
+      dockerfile: Dockerfile
     container_name: loans1
     ports:
       - "5002:8000"
     restart: always
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/BooksDB
+      - MONGO_URI=mongodb://mongodb:27017/LoansDB
     depends_on:
+      - books
       - mongo
-    command: [ "flask", "run", "--host=0.0.0.0", "--port=8000" ]
 
   loans2:
-    build: .
+    build:
+      context: ./loans_service
+      dockerfile: Dockerfile
     container_name: loans2
     ports:
       - "5003:8000"
     restart: always
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/BooksDB
+      - MONGO_URI=mongodb://mongodb:27017/LoansDB
     depends_on:
+      - books
       - mongo
-    command: [ "flask", "run", "--host=0.0.0.0", "--port=8000" ]
 
   mongo:
     image: mongo
     container_name: mongodb
     ports:
       - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
 
   nginx:
     image: nginx
@@ -56,6 +59,3 @@ services:
       - books
       - loans
       - loans2
-
-volumes:
-  mongo-data:

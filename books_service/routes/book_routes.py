@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from utils import fetch_from_google_books, generate_book_id
+from ..utils import fetch_from_google_books, generate_book_id
 from flask_pymongo import PyMongo
 
 book_bp = Blueprint('book_bp', __name__)

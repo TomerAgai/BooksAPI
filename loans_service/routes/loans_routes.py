@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 import uuid
-from utils import get_book_details
+from ..utils import get_book_details
 from flask_pymongo import PyMongo
 
 loan_bp = Blueprint('loan_bp', __name__)

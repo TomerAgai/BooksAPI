@@ -1,17 +1,10 @@
 from flask import Blueprint, jsonify
-from .book_routes import book_bp
-from .rating_routes import rating_bp
-from .loans_routes import loan_bp
 from flask_pymongo import PyMongo
 
-api_bp = Blueprint('api', __name__)
+top_bp = Blueprint('top_bp', __name__)
 mongo = PyMongo()
 
-api_bp.register_blueprint(book_bp, url_prefix='/books')
-api_bp.register_blueprint(rating_bp, url_prefix='/ratings')
-api_bp.register_blueprint(loan_bp, url_prefix='/loans')
-
-@api_bp.route('/top', methods=['GET'])
+@top_bp.route('/top', methods=['GET'])
 def get_top_rated_books():
     # Fetch ratings from MongoDB
     ratings = list(mongo.db.ratings.find())
