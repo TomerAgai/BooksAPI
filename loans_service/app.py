@@ -4,7 +4,7 @@ from .routes.routes import api_bp
 from .routes.loans_routes import mongo as loans_mongo
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://mongodb:27017/LoansDB"
+app.config["MONGO_URI"] = "mongodb://mongo:27017/LoansDB"
 mongo = PyMongo(app)
 loans_mongo.init_app(app)
 
@@ -15,4 +15,4 @@ def index():
     return "Welcome to the Loan Service API!"
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=8000)
+    app.run(host='0.0.0.0', debug=True, port=80)

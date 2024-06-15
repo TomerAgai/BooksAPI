@@ -4,9 +4,8 @@ from flask_pymongo import PyMongo
 top_bp = Blueprint('top_bp', __name__)
 mongo = PyMongo()
 
-@top_bp.route('/top', methods=['GET'])
+@top_bp.route('/', methods=['GET'])
 def get_top_rated_books():
-    # Fetch ratings from MongoDB
     ratings = list(mongo.db.ratings.find())
     
     # Filter eligible books
@@ -23,7 +22,7 @@ def get_top_rated_books():
     # Collect all books that have a top 3 score
     top_books = [book for book in sorted_books if book['average'] in top_scores]
     result = [{
-        'id': book['_id'],
+        'id': str(book['_id']), 
         'title': book['title'],
         'average': book['average']
     } for book in top_books]

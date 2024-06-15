@@ -1,5 +1,6 @@
+from bson import ObjectId
 from flask import Blueprint, request, jsonify
-from ..utils import fetch_from_google_books, generate_book_id
+from ..utils import fetch_from_google_books
 from flask_pymongo import PyMongo
 
 book_bp = Blueprint('book_bp', __name__)
@@ -35,9 +36,7 @@ def create_book():
     except Exception as e:
         return jsonify({'error': f'unable to connect to external service: {str(e)}'}), 500
 
-    book_id = generate_book_id()
     new_book = {
-        '_id': book_id,
         'title': title,
         'authors': authors,
         'ISBN': isbn,
@@ -45,24 +44,24 @@ def create_book():
         'publishedDate': publishedDate,
         'genre': genre
     }
-    mongo.db.books.insert_one(new_book)
+    book_id = mongo.db.books.insert_one(new_book).inserted_id
 
     new_rating = {
         '_id': book_id,
         'values': [],
         'average': 0.0,
-        'title': title
+        'title': title,
     }
     mongo.db.ratings.insert_one(new_rating)
 
-    return jsonify({'id': book_id}), 201
+    return jsonify({'id': str(book_id)}), 201
 
 @book_bp.route('/', methods=['GET'])
 def get_books():
     query_parameters = request.args
     query = {}
 
-    for field in ['title', 'authors', 'ISBN', 'publisher', 'publishedDate', 'genre', '_id']:
+    for field in ['title', 'authors', 'ISBN', 'publisher', 'publishedDate', 'genre']:
         if field in query_parameters:
             query[field] = query_parameters[field]
 
@@ -75,7 +74,11 @@ def get_books():
 @book_bp.route('/<string:id>', methods=['GET', 'DELETE'])
 def book_resource(id):
     if request.method == 'GET':
-        book = mongo.db.books.find_one({'_id': id})
+        try:
+            book = mongo.db.books.find_one({'_id': ObjectId(id)})
+        except:
+            return jsonify({'error': 'Invalid book ID'}), 400
+
         if book:
             book['_id'] = str(book['_id'])
             return jsonify(book), 200
@@ -83,12 +86,17 @@ def book_resource(id):
             return jsonify({'error': 'Book not found'}), 404
 
     elif request.method == 'DELETE':
-        book_result = mongo.db.books.delete_one({'_id': id})
-        rating_result = mongo.db.ratings.delete_one({'_id': id})
+        try:
+            book_result = mongo.db.books.delete_one({'_id': ObjectId(id)})
+            rating_result = mongo.db.ratings.delete_one({'_id': ObjectId(id)})
+        except:
+            return jsonify({'error': 'Invalid book ID'}), 400
+
         if book_result.deleted_count > 0 and rating_result.deleted_count > 0:
             return jsonify({'id': id}), 200
         else:
             return jsonify({'error': 'Book not found'}), 404
+
 
 @book_bp.route('/<string:id>', methods=['PUT'])
 def update_book(id):
@@ -96,7 +104,7 @@ def update_book(id):
         return jsonify({'error': 'Unsupported Media Type, expected application/json'}), 415
 
     data = request.get_json()
-    required_fields = {'title', 'authors', 'ISBN', 'publisher', 'publishedDate', 'genre'}
+    required_fields = {'title', 'authors', 'ISBN', 'publisher', 'publishedDate', 'genre', '_id'}
     if not all(field in data for field in required_fields):
         return jsonify({'error': 'Missing fields, all fields must be provided'}), 422
 
@@ -106,7 +114,17 @@ def update_book(id):
     if data['genre'] not in ACCEPTED_GENRES:
         return jsonify({'error': 'Invalid genre provided'}), 422
 
-    update_result = mongo.db.books.update_one({'_id': id}, {'$set': data})
+    try:
+        # Validate the _id
+        if ObjectId(id) != ObjectId(data['_id']):
+            return jsonify({'error': 'ID cannot be changed'}), 422
+        
+        # Prepare the update data excluding _id
+        update_data = {key: value for key, value in data.items() if key != '_id'}
+        update_result = mongo.db.books.update_one({'_id': ObjectId(id)}, {'$set': update_data})
+    except:
+        return jsonify({'error': 'Invalid book ID'}), 400
+
     if update_result.matched_count > 0:
         return jsonify({'id': id}), 200
     else:

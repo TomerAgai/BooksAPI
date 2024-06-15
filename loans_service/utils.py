@@ -2,7 +2,7 @@ import requests
 
 def get_book_details(isbn):
     try:
-        response = requests.get(f'http://books:8000/books', params={'ISBN': isbn})
+        response = requests.get(f'http://books:80/books', params={'ISBN': isbn})
         response.raise_for_status()
         books = response.json()
         if books:

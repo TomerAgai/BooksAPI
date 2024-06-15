@@ -57,8 +57,3 @@ def fetch_from_google_books(isbn):
 #     except Exception as e:
 #         print(f"An error occurred while generating the summary: {e}")
 #         return "Summary not available."
-    
-def generate_book_id():
-    global book_id_counter
-    book_id_counter += 1
-    return str(book_id_counter)
